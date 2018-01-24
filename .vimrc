@@ -35,10 +35,13 @@ Plugin 'christoomey/vim-tmux-navigator'
 Plugin 'mbbill/undotree'
 
 " tagbar of current sourcecode
-Plugin 'majutsushi/tagbar'
+"Plugin 'majutsushi/tagbar'
 
 " surround
 Plugin 'tpope/vim-surround'
+
+" Latex
+Plugin 'xuhdev/vim-latex-live-preview'
 
 " autoclose
 "Plugin 'Townk/vim-autoclose'
@@ -53,13 +56,14 @@ filetype plugin indent on    " required
 
 " Editor settings
 set number
-set relativenumber
+"set relativenumber
 syntax on
 noremap <Leader>s :update<CR>
 set colorcolumn=101
-set cursorline
+"set cursorline
 set backspace=indent,eol,start
 set autoindent
+set lazyredraw
 
 " airline
 let g:airline_theme='luna'
@@ -90,6 +94,8 @@ autocmd BufRead,BufNewFile *.py
 		\ let g:comment="#" |
 		\ let g:compile="script" |
 		\ let g:syntastic_mode_map = {"mode": "passive"} " start python files with passive mode
+autocmd BufRead,BufNewFile *.tex
+		\ let g:comment="%"
 
 " comments
 map <S-k> :exec ":s@^@".g:comment."@"<CR>
@@ -161,6 +167,12 @@ highlight MatchParen cterm=bold ctermbg=none ctermfg=green
 " Tagbar
 let g:tagbar_autofocus=1
 
+" Latex live preview
+"command! Latex execute('!' . g:pdflatex . ' %:p')
+command! Latex call CompileLatex()
+let g:livepreview_engine = g:pdflatex
+let g:livepreview_previewer = g:pdf_viewer
+
 " listchars
 "set list listchars=tab:->,trail:.,nbsp:.
 
@@ -172,6 +184,7 @@ function! RunScript(test)
 	if g:compile == "script"
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-u")
 		let l:path = substitute(a:test, '/c', 'c:', '')
+"		let l:path = substitute(a:test, '/q', 'q:', '')
 		let out = system("tmux send-keys -t dev.". g:python_window ." ". shellescape('%run -i '. l:path))
 "		sleep 500m
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-m")
@@ -220,4 +233,26 @@ function! RestartIPython()
 	sleep 1000m
 	let out = system("tmux send-keys -t dev.". g:python_window ." ./start_ipython.sh")
 	let out = system("tmux send-keys -t dev.". g:python_window ." C-m")
+endfunction
+
+function! CompileLatex()
+	let set_env = "export TEXINPUTS=.:$TEXINPUTS:".expand("%:p:h")
+	let compile_cmd = g:pdflatex." -shell-escape -synctex=1 -output-directory=".expand("%:p:h")." ".expand("%:p")
+	let forward_search = g:pdf_viewer." -reuse-instance ".expand("%:r").".pdf -forward-search ".expand("%:p")." ".line(".")
+	let view_pdf = g:pdf_viewer." ". expand("%:r.pdf")
+"	silent execute("!" . set_env . " && " . compile_cmd)
+	let out = system("tmux send-keys -t latex:1 C-u")
+	let out = system("tmux send-keys -t latex:1 ".shellescape(set_env." && ".compile_cmd." && ".forward_search)." C-m")
+"	let out = system("ps -W | grep mupdf")
+"	if out == ""
+"		let out = system("nohup " . g:pdf_viewer . " " . expand("%:r") . ".pdf > nohup.out 2>&1 </dev/null &")
+"	endif
+"	let out = execute("!export TEXINPUTS=.:$TEXINPUTS:" . expand("%:p:h"))
+"	execute("!export TEXINPUTS=.:$TEXINPUTS:" . expand("%:p:h") ."&& " . g:pdflatex . " -shell-escape %:p")
+endfunction
+
+function! Test()
+	let out = system("ps -W | grep mupdf")
+	if out == ""
+
 endfunction
