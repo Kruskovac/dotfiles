@@ -41,7 +41,8 @@ Plugin 'mbbill/undotree'
 Plugin 'tpope/vim-surround'
 
 " Latex
-Plugin 'xuhdev/vim-latex-live-preview'
+"Plugin 'lervag/vimtex'
+"Plugin 'xuhdev/vim-latex-live-preview'
 
 " autoclose
 "Plugin 'Townk/vim-autoclose'
@@ -87,15 +88,20 @@ nnoremap <silent> <F6> :call RestartIPython() <CR>
 autocmd BufRead,BufNewFile *.pde,*.cpp,*.h
 		\ let g:comment="//" |
 		\ let g:compile="redo" |
-		\ inoremap <buffer> {<CR> {<CR>}<up><end><CR>
+		\ inoremap <buffer> {<CR> {<CR>}<up><end><CR> |
+autocmd BufRead,BufNewFile *.vimrc
+		\ let g:comment="\"" |
 autocmd BufRead,BufNewFile *.pde
 		\ inoremap <buffer> {<CR> {<CR>}<up><end><CR><tab>
 autocmd BufRead,BufNewFile *.py
 		\ let g:comment="#" |
 		\ let g:compile="script" |
-		\ let g:syntastic_mode_map = {"mode": "passive"} " start python files with passive mode
+		\ let g:syntastic_mode_map = {"mode": "passive"} | " start python files with passive mode
 autocmd BufRead,BufNewFile *.tex
-		\ let g:comment="%"
+		\ let g:comment="%" |
+		\ let g:compile="latex" |
+		\ setlocal spell spelllang=de_de |
+		\ setlocal tw=100 |
 
 " comments
 map <S-k> :exec ":s@^@".g:comment."@"<CR>
@@ -149,7 +155,8 @@ autocmd bufwritepost .vimrc source $MYVIMRC
 
 " Persistent undo
 set undofile
-set undodir=~/.vim/undo
+"set undodir=~/.vim/undo
+set undodir=/q/Workspace/Vim_undo/undo/
 set undolevels=1000
 set undoreload=10000
 
@@ -168,13 +175,26 @@ highlight MatchParen cterm=bold ctermbg=none ctermfg=green
 let g:tagbar_autofocus=1
 
 " Latex live preview
-"command! Latex execute('!' . g:pdflatex . ' %:p')
 command! Latex call CompileLatex()
 let g:livepreview_engine = g:pdflatex
 let g:livepreview_previewer = g:pdf_viewer
 
 " listchars
 "set list listchars=tab:->,trail:.,nbsp:.
+
+
+" Use Windows clipboard
+function! ClipboardYank()
+	call writefile(split(@@, "\n"), '/dev/clipboard')
+endfunction
+
+function! ClipboardPaste()
+	let @@ = join(readfile('/dev/clipboard'), "\n")
+endfunction
+
+vnoremap <silent> y y:call ClipboardYank()<CR>
+vnoremap <silent> d d:call ClipboardYank()<CR>
+nnoremap <silent> *p :call ClipboardPaste()<CR>p
 
 "##############################################################################
 "############################# FUNCTIONS ######################################
@@ -190,6 +210,8 @@ function! RunScript(test)
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-m")
 	elseif g:compile == "redo"
 		let out = system("tmux send-keys -t dev.". g:python_window ." Up C-m ")
+	elseif g:compile == "latex"
+		call CompileLatex()
 	endif
 endfunction
 
@@ -236,23 +258,26 @@ function! RestartIPython()
 endfunction
 
 function! CompileLatex()
-	let set_env = "export TEXINPUTS=.:$TEXINPUTS:".expand("%:p:h")
-	let compile_cmd = g:pdflatex." -shell-escape -synctex=1 -output-directory=".expand("%:p:h")." ".expand("%:p")
-	let forward_search = g:pdf_viewer." -reuse-instance ".expand("%:r").".pdf -forward-search ".expand("%:p")." ".line(".")
-	let view_pdf = g:pdf_viewer." ". expand("%:r.pdf")
-"	silent execute("!" . set_env . " && " . compile_cmd)
-	let out = system("tmux send-keys -t latex:1 C-u")
-	let out = system("tmux send-keys -t latex:1 ".shellescape(set_env." && ".compile_cmd." && ".forward_search)." C-m")
-"	let out = system("ps -W | grep mupdf")
-"	if out == ""
-"		let out = system("nohup " . g:pdf_viewer . " " . expand("%:r") . ".pdf > nohup.out 2>&1 </dev/null &")
-"	endif
-"	let out = execute("!export TEXINPUTS=.:$TEXINPUTS:" . expand("%:p:h"))
-"	execute("!export TEXINPUTS=.:$TEXINPUTS:" . expand("%:p:h") ."&& " . g:pdflatex . " -shell-escape %:p")
+	exec ":update"
+	let file_name = expand("%:t:r")
+	let tex_file = file_name.".tex"
+	let pdf_file = file_name.".pdf"
+	let output_dir = expand("%:p:h")
+
+	let compile_latex = g:latexmk." -pdflatex='pdflatex -synctex=1 -shell-escape' -pdf ".file_name
+	let forward_search = g:pdf_viewer." -reuse-instance ".pdf_file.
+				\ " -forward-search ".tex_file." ".line(".")
+	let out = system("tmux send-keys -t latex:1 ".
+			\ shellescape(
+				\ "cd '".output_dir."'
+				\   && ".
+				\ compile_latex.
+				\ " && ".
+				\ forward_search.
+				\ " ; 
+				\ ~/sendKeys.bat Latex ''"
+			\).
+			\ " C-m")
 endfunction
 
-function! Test()
-	let out = system("ps -W | grep mupdf")
-	if out == ""
 
-endfunction
