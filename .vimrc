@@ -114,7 +114,9 @@ let g:ycm_autoclose_preview_window_after_completion=1
 map <leader>g  :YcmCompleter GoTo<CR>
 map <c-i>  :YcmCompleter GetDoc<CR>
 let g:ycm_global_ycm_extra_conf="~/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py"
-let g:ycm_server_python_interpreter = g:python_interpreter " set in sourcing file
+if has('win32') || has('win64')
+	let g:ycm_server_python_interpreter = g:python_interpreter " set in sourcing file
+endif
 
 " File search
 map <F2> :NERDTreeToggle<CR>
@@ -164,7 +166,9 @@ set undoreload=10000
 nmap <F4> :UndotreeToggle <CR>
 
 " Tags
-let g:tagbar_ctags_bin = g:ctags_path " set in sourcing file
+if has('win32') || has('win64')
+	let g:tagbar_ctags_bin = g:ctags_path " set in sourcing file
+endif
 nmap <F8> :TagbarToggle <CR>
 
 " Whitespace color
@@ -176,8 +180,10 @@ let g:tagbar_autofocus=1
 
 " Latex live preview
 command! Latex call CompileLatex()
-let g:livepreview_engine = g:pdflatex
-let g:livepreview_previewer = g:pdf_viewer
+if has('win32') || has('win64')
+	let g:livepreview_engine = g:pdflatex
+	let g:livepreview_previewer = g:pdf_viewer
+endif
 
 " listchars
 "set list listchars=tab:->,trail:.,nbsp:.
@@ -192,9 +198,11 @@ function! ClipboardPaste()
 	let @@ = join(readfile('/dev/clipboard'), "\n")
 endfunction
 
-vnoremap <silent> y y:call ClipboardYank()<CR>
-vnoremap <silent> d d:call ClipboardYank()<CR>
-nnoremap <silent> *p :call ClipboardPaste()<CR>p
+if has('win32') || has('win64')
+	vnoremap <silent> y y:call ClipboardYank()<CR>
+	vnoremap <silent> d d:call ClipboardYank()<CR>
+	nnoremap <silent> *p :call ClipboardPaste()<CR>p
+endif
 
 "##############################################################################
 "############################# FUNCTIONS ######################################
