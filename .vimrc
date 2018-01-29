@@ -52,6 +52,13 @@ filetype plugin indent on    " required
 
 
 "###############################################################
+"####################### ENVIRONMENT ###########################
+"###############################################################
+
+let g:environment = substitute(system('uname'), '\n', "", "")
+
+
+"###############################################################
 "######################### SETTINGS ############################
 "###############################################################
 
@@ -114,7 +121,7 @@ let g:ycm_autoclose_preview_window_after_completion=1
 map <leader>g  :YcmCompleter GoTo<CR>
 map <c-i>  :YcmCompleter GetDoc<CR>
 let g:ycm_global_ycm_extra_conf="~/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py"
-if has('win32') || has('win64')
+if g:environment == "MINGW64_NT-10.0"
 	let g:ycm_server_python_interpreter = g:python_interpreter " set in sourcing file
 endif
 
@@ -166,7 +173,7 @@ set undoreload=10000
 nmap <F4> :UndotreeToggle <CR>
 
 " Tags
-if has('win32') || has('win64')
+if g:environment == "MINGW64_NT-10.0"
 	let g:tagbar_ctags_bin = g:ctags_path " set in sourcing file
 endif
 nmap <F8> :TagbarToggle <CR>
@@ -180,7 +187,7 @@ let g:tagbar_autofocus=1
 
 " Latex live preview
 command! Latex call CompileLatex()
-if has('win32') || has('win64')
+if g:environment == "MINGW64_NT-10.0"
 	let g:livepreview_engine = g:pdflatex
 	let g:livepreview_previewer = g:pdf_viewer
 endif
@@ -198,7 +205,7 @@ function! ClipboardPaste()
 	let @@ = join(readfile('/dev/clipboard'), "\n")
 endfunction
 
-if has('win32') || has('win64')
+if g:environment == "MINGW64_NT-10.0"
 	vnoremap <silent> y y:call ClipboardYank()<CR>
 	vnoremap <silent> d d:call ClipboardYank()<CR>
 	nnoremap <silent> *p :call ClipboardPaste()<CR>p
@@ -282,10 +289,8 @@ function! CompileLatex()
 				\ compile_latex.
 				\ " && ".
 				\ forward_search.
-				\ " ; 
+				\ " ;
 				\ ~/sendKeys.bat Latex ''"
 			\).
 			\ " C-m")
 endfunction
-
-
