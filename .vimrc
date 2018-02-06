@@ -56,6 +56,7 @@ filetype plugin indent on    " required
 "###############################################################
 
 let g:environment = substitute(system('uname'), '\n', "", "")
+set viminfo='20,<50,s10,h
 
 
 "###############################################################
@@ -107,8 +108,9 @@ autocmd BufRead,BufNewFile *.py
 autocmd BufRead,BufNewFile *.tex
 		\ let g:comment="%" |
 		\ let g:compile="latex" |
-		\ setlocal spell spelllang=de_de |
 		\ setlocal tw=100 |
+		\ command! Spell call ToggleSpellCheck()
+"		\ setlocal spell spelllang=de_de |
 
 " comments
 map <S-k> :exec ":s@^@".g:comment."@"<CR>
@@ -165,7 +167,7 @@ autocmd bufwritepost .vimrc source $MYVIMRC
 " Persistent undo
 set undofile
 "set undodir=~/.vim/undo
-set undodir=/q/Workspace/Vim_undo/undo/
+set undodir=/d/Vim_undo/undo/
 set undolevels=1000
 set undoreload=10000
 
@@ -218,8 +220,11 @@ endif
 function! RunScript(test)
 	if g:compile == "script"
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-u")
-		let l:path = substitute(a:test, '/c', 'c:', '')
-"		let l:path = substitute(a:test, '/q', 'q:', '')
+		if g:environment == "MINGW64_NT-10.0"
+			let l:path = system("cygpath -m ".a:test)
+"			let l:path = substitute(a:test, '/d', 'd:', '')
+"			let l:path = substitute(a:test, '/q', 'q:', '')
+		endif
 		let out = system("tmux send-keys -t dev.". g:python_window ." ". shellescape('%run -i '. l:path))
 "		sleep 500m
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-m")
@@ -293,4 +298,15 @@ function! CompileLatex()
 				\ ~/sendKeys.bat Latex ''"
 			\).
 			\ " C-m")
+endfunction
+
+function! ToggleSpellCheck()
+	let spell_info = execute(":set spell?")
+	let spell_info = substitute(spell_info, '\n', '', '')
+	let spell_info = substitute(spell_info, ' ', '', '')
+	if spell_info == "nospell"
+		setlocal spell spelllang=de_de
+	else
+		set nospell
+	endif
 endfunction
