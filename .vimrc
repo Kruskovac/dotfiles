@@ -93,10 +93,14 @@ vmap <silent> <F9> y:call SendLinesToPython() <CR>
 nnoremap <silent> <F6> :call RestartIPython() <CR>
 
 " Filetype dependent settings
-autocmd BufRead,BufNewFile *.pde,*.cpp,*.h
+autocmd BufRead,BufNewFile *.pde,*.cpp,*.h,*.cs,*.shader
+		\ setlocal tabstop=4 |
+		\ setlocal shiftwidth=4 |
 		\ let g:comment="//" |
 		\ let g:compile="redo" |
 		\ inoremap <buffer> {<CR> {<CR>}<up><end><CR> |
+autocmd BufRead,BufNewFile *.shader
+		\ setlocal syntax=c
 autocmd BufRead,BufNewFile *.vimrc
 		\ let g:comment="\"" |
 autocmd BufRead,BufNewFile *.pde
@@ -123,7 +127,7 @@ let g:ycm_autoclose_preview_window_after_completion=1
 map <leader>g  :YcmCompleter GoTo<CR>
 map <c-i>  :YcmCompleter GetDoc<CR>
 let g:ycm_global_ycm_extra_conf="~/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py"
-if g:environment == "MINGW64_NT-10.0"
+if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
 	let g:ycm_server_python_interpreter = g:python_interpreter " set in sourcing file
 endif
 
@@ -175,7 +179,7 @@ set undoreload=10000
 nmap <F4> :UndotreeToggle <CR>
 
 " Tags
-if g:environment == "MINGW64_NT-10.0"
+if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
 	let g:tagbar_ctags_bin = g:ctags_path " set in sourcing file
 endif
 nmap <F8> :TagbarToggle <CR>
@@ -189,7 +193,7 @@ let g:tagbar_autofocus=1
 
 " Latex live preview
 command! Latex call CompileLatex()
-if g:environment == "MINGW64_NT-10.0"
+if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
 	let g:livepreview_engine = g:pdflatex
 	let g:livepreview_previewer = g:pdf_viewer
 endif
@@ -207,7 +211,7 @@ function! ClipboardPaste()
 	let @@ = join(readfile('/dev/clipboard'), "\n")
 endfunction
 
-if g:environment == "MINGW64_NT-10.0"
+if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
 	vnoremap <silent> y y:call ClipboardYank()<CR>
 	vnoremap <silent> d d:call ClipboardYank()<CR>
 	nnoremap <silent> *p :call ClipboardPaste()<CR>p
@@ -220,7 +224,7 @@ endif
 function! RunScript(test)
 	if g:compile == "script"
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-u")
-		if g:environment == "MINGW64_NT-10.0"
+		if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
 			let l:path = system("cygpath -m ".a:test)
 "			let l:path = substitute(a:test, '/d', 'd:', '')
 "			let l:path = substitute(a:test, '/q', 'q:', '')
