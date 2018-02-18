@@ -74,6 +74,20 @@ set backspace=indent,eol,start
 set autoindent
 set lazyredraw
 
+" handle scrolling through wrapped lines
+nnoremap j gj
+nnoremap k gk
+
+" wildmenu
+set wildmenu
+set wildmode=longest:full,full
+
+" highlight search
+set hlsearch
+
+" scrolling
+set scrolloff=4
+
 " airline
 let g:airline_theme='luna'
 let g:airline_solarized_bg='dark'
