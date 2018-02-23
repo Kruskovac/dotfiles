@@ -27,7 +27,6 @@ Plugin 'nvie/vim-flake8'
 "Plugin 'bronson/vim-trailing-whitespace'
 Plugin 'ntpeters/vim-better-whitespace'
 
-
 "tmux navigator
 Plugin 'christoomey/vim-tmux-navigator'
 
@@ -43,6 +42,8 @@ Plugin 'tpope/vim-surround'
 " Latex
 "Plugin 'lervag/vimtex'
 "Plugin 'xuhdev/vim-latex-live-preview'
+Plugin 'SirVer/ultisnips'
+Plugin 'honza/vim-snippets'
 
 " autoclose
 "Plugin 'Townk/vim-autoclose'
@@ -67,7 +68,7 @@ set viminfo='20,<50,s10,h
 set number
 "set relativenumber
 syntax on
-noremap <Leader>s :update<CR>
+noremap <Leader>s <C-s>
 set colorcolumn=101
 "set cursorline
 set backspace=indent,eol,start
@@ -88,9 +89,24 @@ set hlsearch
 " scrolling
 set scrolloff=4
 
+" Save with Ctrl + s in any mode
+noremap <silent> <C-s> :update<CR>
+vnoremap <silent> <C-s> <C-C>:update<CR>
+"inoremap <silent> <C-s> <C-O>:update<CR>
+inoremap <silent> <C-s> <Esc>:update<CR>
+
+" Insert new line by pressing enter
+nnoremap <CR> o<Esc>
+
+" Stop beeping
+set visualbell
+
+" search word unter cursor
+nnoremap <C-f> "zyiw:exec ":/".@z <CR>
+
 " airline
 let g:airline_theme='luna'
-let g:airline_solarized_bg='dark'
+"let g:airline_solarized_bg='dark'
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#fnamemod = ':t'
@@ -99,7 +115,9 @@ set t_Co=256
 
 " Python
 let python_highlight_all=1
+"inoremap <silent> <F5> <Esc> :update \| call RunScript(expand('%:p')) <CR>
 nnoremap <silent> <F5> :update \| call RunScript(expand('%:p')) <CR>
+"inoremap <silent> <F9> <Esc> y:call SendLineToPython() <CR>
 nnoremap <silent> <F9> y:call SendLineToPython() <CR>
 vmap <silent> <F9> y:call SendLinesToPython() <CR>
 
@@ -131,10 +149,10 @@ autocmd BufRead,BufNewFile *.tex
 "		\ setlocal spell spelllang=de_de |
 
 " comments
-map <S-k> :exec ":s@^@".g:comment."@"<CR>
-map <S-j> :exec ":s@\\%<3c".g:comment."@@"<CR>
-vnoremap <S-k> :<C-U>exec ":'<,'>s@^@".g:comment."@"<CR>
-vnoremap <S-j> :<C-U>exec ":'<,'>s@\\%<3c".g:comment."@@"<CR>
+map <silent> <S-k> :exec ":s@^@".g:comment."@e"<CR> :noh <CR> " e at the end of search ignores errors
+map <silent> <S-j> :exec ":s@\\%<3c".g:comment."@@e"<CR> :noh <CR>
+vnoremap <silent> <S-k> :<C-U>exec ":'<,'>s@^@".g:comment."@e"<CR> :noh <CR>
+vnoremap <silent> <S-j> :<C-U>exec ":'<,'>s@\\%<3c".g:comment."@@e"<CR> :noh <CR>
 
 " YouCompleteMe
 let g:ycm_autoclose_preview_window_after_completion=1
@@ -211,6 +229,11 @@ if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
 	let g:livepreview_engine = g:pdflatex
 	let g:livepreview_previewer = g:pdf_viewer
 endif
+
+" UltiSnips
+let g:UltiSnipsExpandTrigger="<c-k>"
+let g:UltiSnipsJumpForwardTrigger="<c-k>"
+let g:UltiSnipsJumpBackwardTrigger="<c-j>"
 
 " listchars
 "set list listchars=tab:->,trail:.,nbsp:.
@@ -303,7 +326,7 @@ function! CompileLatex()
 	let output_dir = expand("%:p:h")
 
 	let compile_latex = g:latexmk." -pdflatex='pdflatex -synctex=1 -shell-escape' -pdf ".file_name
-	let forward_search = g:pdf_viewer." -reuse-instance ".pdf_file.
+	let forward_search = "start ".g:pdf_viewer." -reuse-instance ".pdf_file.
 				\ " -forward-search ".tex_file." ".line(".")
 	let out = system("tmux send-keys -t latex:1 ".
 			\ shellescape(
@@ -328,3 +351,25 @@ function! ToggleSpellCheck()
 		set nospell
 	endif
 endfunction
+
+
+"########################################
+"################ TEST ##################
+"########################################
+
+"function! g:UltiSnips_Complete()
+"	call UltiSnips#ExpandSnippet()
+"	if g:ulti_expand_res == 0
+"		if pumvisible()
+"			return "\<C-n>"
+"		else
+"			call UltiSnips#JumpForwards()
+"			if g:ulti_jump_forwards_res == 0
+"				return "\<TAB>"
+"			endif
+"		endif
+"	endif
+"	return ""
+"endfunction
+"
+"au InsertEnter * exec "inoremap <silent> ".g:UltiSnipsExpandTrigger." <C-R>=g:UltiSnips_Complete()<cr>"
