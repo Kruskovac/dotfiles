@@ -142,6 +142,8 @@ autocmd BufRead,BufNewFile *.py
 		\ let g:compile="script" |
 		\ let g:syntastic_mode_map = {"mode": "passive"} | " start python files with passive mode
 autocmd BufRead,BufNewFile *.tex
+		\ setlocal tabstop=4 |
+		\ setlocal shiftwidth=4 |
 		\ let g:comment="%" |
 		\ let g:compile="latex" |
 		\ setlocal tw=100 |
@@ -229,6 +231,7 @@ if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
 	let g:livepreview_engine = g:pdflatex
 	let g:livepreview_previewer = g:pdf_viewer
 endif
+command! LatexClean call CleanLatex()
 
 " UltiSnips
 let g:UltiSnipsExpandTrigger="<c-k>"
@@ -262,11 +265,12 @@ function! RunScript(test)
 	if g:compile == "script"
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-u")
 		if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
-			let l:path = system("cygpath -m ".a:test)
+			let l:path = system("cygpath -m '".a:test."'")
+			let l:path = substitute(l:path, '\n', '', '')
 "			let l:path = substitute(a:test, '/d', 'd:', '')
 "			let l:path = substitute(a:test, '/q', 'q:', '')
 		endif
-		let out = system("tmux send-keys -t dev.". g:python_window ." ". shellescape('%run -i '. l:path))
+		let out = system("tmux send-keys -t dev.". g:python_window ." ". shellescape('%run -i "'. l:path .'"'))
 "		sleep 500m
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-m")
 	elseif g:compile == "redo"
@@ -337,6 +341,18 @@ function! CompileLatex()
 				\ forward_search.
 				\ " ;
 				\ ~/sendKeys.bat Latex ''"
+			\).
+			\ " C-m")
+endfunction
+
+function! CleanLatex()
+	let output_dir = expand("%:p:h")
+	let clean_latex = g:latexmk." -c"
+	let out = system("tmux send-keys -t latex:1 ".
+			\ shellescape(
+				\ "cd '".output_dir."'
+				\   && ".
+				\ clean_latex.""
 			\).
 			\ " C-m")
 endfunction
