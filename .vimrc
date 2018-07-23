@@ -1,4 +1,5 @@
 set nocompatible              " be iMproved, required
+
 filetype off                  " required
 
 " set the runtime path to include Vundle and initialize
@@ -193,7 +194,7 @@ nnoremap <s-h> :update \| bp <CR>
 nnoremap <s-l> :update \| bn <CR>
 
 " Colors
-let base16colorspace=256
+"let base16colorspace=256
 let g:solarized_termcolors=256
 set background=dark
 colorscheme solarized
@@ -240,6 +241,10 @@ let g:UltiSnipsJumpBackwardTrigger="<c-j>"
 
 " listchars
 "set list listchars=tab:->,trail:.,nbsp:.
+
+
+" join lines without spacing and tabs
+noremap <silent> gJ :j <CR>
 
 
 " Use Windows clipboard
