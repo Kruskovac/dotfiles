@@ -126,7 +126,7 @@ vmap <silent> <F9> y:call SendLinesToPython() <CR>
 nnoremap <silent> <F6> :call RestartIPython() <CR>
 
 " Filetype dependent settings
-autocmd BufRead,BufNewFile *.pde,*.cpp,*.h,*.cs,*.shader
+autocmd BufRead,BufNewFile *.pde,*.cpp,*.h,*.cs,*.shader,*.js
 		\ setlocal tabstop=4 |
 		\ setlocal shiftwidth=4 |
 		\ let g:comment="//" |
