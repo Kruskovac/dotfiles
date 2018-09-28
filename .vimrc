@@ -262,6 +262,9 @@ if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
 	nnoremap <silent> *p :call ClipboardPaste()<CR>p
 endif
 
+" Debugging
+command! Debug :normal oimport pdb; pdb.set_trace()<ESC>
+
 "##############################################################################
 "############################# FUNCTIONS ######################################
 "##############################################################################
