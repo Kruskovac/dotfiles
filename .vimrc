@@ -117,7 +117,7 @@ set t_Co=256
 " Python
 let python_highlight_all=1
 "inoremap <silent> <F5> <Esc> :update \| call RunScript(expand('%:p')) <CR>
-nnoremap <silent> <F5> :update \| call RunScript(expand('%:p')) <CR>
+nnoremap <silent> <F5> :update \| call RunScript(expand('%:p'), 0) <CR>
 "inoremap <silent> <F9> <Esc> y:call SendLineToPython() <CR>
 nnoremap <silent> <F9> y:call SendLineToPython() <CR>
 vmap <silent> <F9> y:call SendLinesToPython() <CR>
@@ -142,6 +142,7 @@ autocmd BufRead,BufNewFile *.py
 		\ let g:comment="#" |
 		\ let g:compile="script" |
 		\ let g:syntastic_mode_map = {"mode": "passive"} | " start python files with passive mode
+		\ setlocal tw=100 |
 autocmd BufRead,BufNewFile *.tex
 		\ setlocal tabstop=4 |
 		\ setlocal shiftwidth=4 |
@@ -264,16 +265,26 @@ endif
 
 " Debugging
 command! Debug :normal oimport pdb; pdb.set_trace()<ESC>
+command! DebugQt :normal oimport pdb;import PyQt4.QtCore;PyQt4.QtCore.pyqtRemoveInputHook();pdb.set_trace()<ESC>
+
+" exec path
+command! SetExecPath :let g:exec_path=expand("%:p")
+command! UnsetExecPath :unlet exec_path
 
 "##############################################################################
 "############################# FUNCTIONS ######################################
 "##############################################################################
 
-function! RunScript(test)
+function! RunScript(test, use_test)
+	let l:path = a:test
+	if (a:use_test) == 0 && exists("g:exec_path")
+		let l:path = g:exec_path
+	endif
+
 	if g:compile == "script"
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-u")
 		if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
-			let l:path = system("cygpath -m '".a:test."'")
+			let l:path = system("cygpath -m '".l:path."'")
 			let l:path = substitute(l:path, '\n', '', '')
 "			let l:path = substitute(a:test, '/d', 'd:', '')
 "			let l:path = substitute(a:test, '/q', 'q:', '')
@@ -292,7 +303,7 @@ function! SendLinesToPython()
 	exec ":'<,'> w!~/.vim/.pythonbuffer"
 	let lines = FixPythonBufferIndent(readfile(expand('~/.vim/.pythonbuffer')))
 	call writefile(lines, expand('~/.vim/.pythonbuffer'))
-	let out = RunScript('~/.vim/.pythonbuffer')
+	let out = RunScript('~/.vim/.pythonbuffer', 1)
 endfunction
 
 function! FixPythonBufferIndent(buffer_lines)
@@ -374,6 +385,13 @@ function! ToggleSpellCheck()
 	else
 		set nospell
 	endif
+endfunction
+
+function! SetIPythonPath()
+	let curr_file_path = expand('%:p:h')
+	let curr_file_path = system("cygpath -m '".curr_file_path."'")
+	let out = system("tmux send-keys -t dev.". g:python_window ." 'cd ". curr_file_path ."'")
+	let out = system("tmux send-keys -t dev.". g:python_window ." C-m")
 endfunction
 
 
