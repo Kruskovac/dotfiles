@@ -20,7 +20,9 @@ Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 
 "Autocomplete
-Plugin 'Valloric/YouCompleteMe'
+"Plugin 'Valloric/YouCompleteMe'
+Plugin 'davidhalter/jedi-vim'
+Plugin 'ervandew/supertab'
 
 "Syntax checking
 Plugin 'scrooloose/syntastic'
@@ -166,6 +168,13 @@ let g:ycm_global_ycm_extra_conf="~/.vim/bundle/YouCompleteMe/third_party/ycmd/cp
 if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
 	let g:ycm_server_python_interpreter = g:python_interpreter " set in sourcing file
 endif
+let g:ycm_semantic_triggers = {
+	\   'python': [ 're!\w{2}' ]
+	\ }
+
+" jedi
+let g:jedi#documentation_command = ""
+let g:jedi#use_tag_stack = 0
 
 " File search
 map <F2> :NERDTreeToggle<CR>
@@ -199,6 +208,7 @@ nnoremap <s-l> :update \| bn <CR>
 let g:solarized_termcolors=256
 set background=dark
 colorscheme solarized
+hi Normal guibg=NONE ctermbg=NONE
 
 " vimrc
 map <leader>vimrc :e ~/Dokumente/dotfiles/.vimrc<cr>
@@ -242,6 +252,9 @@ let g:UltiSnipsJumpBackwardTrigger="<c-j>"
 
 " listchars
 "set list listchars=tab:->,trail:.,nbsp:.
+
+" json
+command! FormatJson :%!python -m json.tool
 
 
 " join lines without spacing and tabs
