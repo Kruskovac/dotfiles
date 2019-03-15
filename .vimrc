@@ -48,6 +48,9 @@ Plugin 'tpope/vim-surround'
 Plugin 'SirVer/ultisnips'
 Plugin 'honza/vim-snippets'
 
+" Notes
+Plugin 'vimwiki/vimwiki'
+
 " autoclose
 "Plugin 'Townk/vim-autoclose'
 
@@ -99,7 +102,7 @@ vnoremap <silent> <C-s> <C-C>:update<CR>
 inoremap <silent> <C-s> <Esc>:update<CR>
 
 " Insert new line by pressing enter
-nnoremap <CR> o<Esc>
+noremap <CR> o<Esc>
 
 " Stop beeping
 set visualbell
@@ -140,7 +143,7 @@ autocmd BufRead,BufNewFile *.vimrc
 		\ let g:comment="\"" |
 autocmd BufRead,BufNewFile *.pde
 		\ inoremap <buffer> {<CR> {<CR>}<up><end><CR><tab>
-autocmd BufRead,BufNewFile *.py
+autocmd BufRead,BufNewFile *.py,*pyx
 		\ let g:comment="#" |
 		\ let g:compile="script" |
 		\ let g:syntastic_mode_map = {"mode": "passive"} | " start python files with passive mode
@@ -173,8 +176,14 @@ let g:ycm_semantic_triggers = {
 	\ }
 
 " jedi
-let g:jedi#documentation_command = ""
+let g:jedi#documentation_command = "<C-i>"
 let g:jedi#use_tag_stack = 0
+let g:jedi#popup_select_first = 0
+let g:jedi#show_call_signatures = "2"
+
+" Supertab
+set completeopt=menu,longest    " Use the popup menu by default; only insert the longest common text of the completion matches; don't automatically show extra information in the preview window.
+let g:SuperTabDefaultCompletionType = "<c-n>"
 
 " File search
 map <F2> :NERDTreeToggle<CR>
@@ -226,7 +235,7 @@ nmap <F4> :UndotreeToggle <CR>
 
 " Tags
 if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
-	let g:tagbar_ctags_bin = g:ctags_path " set in sourcing file
+let g:tagbar_ctags_bin = g:ctags_path " set in sourcing file
 endif
 nmap <F8> :TagbarToggle <CR>
 
@@ -240,8 +249,8 @@ let g:tagbar_autofocus=1
 " Latex live preview
 command! Latex call CompileLatex()
 if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
-	let g:livepreview_engine = g:pdflatex
-	let g:livepreview_previewer = g:pdf_viewer
+let g:livepreview_engine = g:pdflatex
+let g:livepreview_previewer = g:pdf_viewer
 endif
 command! LatexClean call CleanLatex()
 
@@ -259,6 +268,11 @@ command! FormatJson :%!python -m json.tool
 
 " join lines without spacing and tabs
 noremap <silent> gJ :j <CR>
+
+" VimWiki
+noremap <Leader>äwfabc <Plug>VimwikiFollowLink
+noremap <Leader>wf :VimwikiFollowLink<CR>
+let g:vimwiki_list = [{'path': '/d/Workspace/Sonstiges/notes', 'syntax': 'markdown', 'ext': '.md'}]
 
 
 " Use Windows clipboard
@@ -284,14 +298,22 @@ command! DebugQt :normal oimport pdb;import PyQt4.QtCore;PyQt4.QtCore.pyqtRemove
 command! SetExecPath :let g:exec_path=expand("%:p")
 command! UnsetExecPath :unlet exec_path
 
+" workspace path
+command! SetWorkspacePath :let g:workspace_path=expand("%:p:h")
+command! UnsetWorkspacePath :unlet workspace_path
+
 "##############################################################################
 "############################# FUNCTIONS ######################################
 "##############################################################################
 
 function! RunScript(test, use_test)
 	let l:path = a:test
+	let l:work_path = ""
 	if (a:use_test) == 0 && exists("g:exec_path")
 		let l:path = g:exec_path
+	endif
+	if exists("g:workspace_path")
+		let l:work_path = g:workspace_path
 	endif
 
 	if g:compile == "script"
@@ -302,6 +324,15 @@ function! RunScript(test, use_test)
 "			let l:path = substitute(a:test, '/d', 'd:', '')
 "			let l:path = substitute(a:test, '/q', 'q:', '')
 		endif
+		if l:work_path != ""
+			if g:environment == "MINGW64_NT-10.0" || g:environment == "MINGW64_NT-6.1"
+				let l:work_path = system("cygpath -m '".l:work_path."'")
+				let l:work_path = substitute(l:work_path, '\n', '', '')
+			endif
+			let out = system("tmux send-keys -t dev.". g:python_window ." ". shellescape('cd "'. l:work_path .'"'))
+			let out = system("tmux send-keys -t dev.". g:python_window ." C-m")
+		endif
+
 		let out = system("tmux send-keys -t dev.". g:python_window ." ". shellescape('%run -i "'. l:path .'"'))
 "		sleep 500m
 		let out = system("tmux send-keys -t dev.". g:python_window ." C-m")
